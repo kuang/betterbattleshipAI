@@ -108,5 +108,20 @@ def place_ship(ship_size, ship_marking, direction, row, col):
         for i in range(ship_size):
             game_board[row][col+i] = ship_marking
 
+def has_game_ended():
+    for row in game_board:
+        for item in row:
+            if item != 0: return False
+    return True
+
+# update game for attack on row, col
+# returns tuple (hit/miss, null/which ship sunk, game still on/game over)
+def update_gameboard(row, col):
+    current = game_board[row][col]
+    if current == 0: # nothing there
+        return (0, 0, 0)
+
+
 set_random_ships()
-print_board_to_console()
+# print_board_to_console()
+print(has_game_ended())
