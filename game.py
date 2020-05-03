@@ -113,8 +113,7 @@ def place_ship(ship_size, ship_marking, direction, row, col):
 def has_game_ended():
     for row in game_board:
         for item in row:
-            if item != DEFAULT_CHAR or item != HIT_CHAR:
-                return False
+            if item != DEFAULT_CHAR or item != HIT_CHAR: return False
     return True
 
 
