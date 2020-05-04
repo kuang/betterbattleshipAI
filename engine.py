@@ -34,6 +34,13 @@ result is
 """
 
 
+def restart_game():
+    for i in range(BOARD_SIZE):
+        for j in range(BOARD_SIZE):
+            game_board[i][j] = DEFAULT_CHAR
+    set_random_ships()
+
+
 # prints to console for debugging
 def print_board_to_console():
     print(np.matrix(game_board))
