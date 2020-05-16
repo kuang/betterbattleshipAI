@@ -5,6 +5,7 @@ import random
 BOARD_SIZE = 10
 DEFAULT_CHAR = ' '
 HIT_CHAR = 'X'
+MISS_CHAR = 'O'
 
 # inits game board
 game_board = [[DEFAULT_CHAR for i in range(BOARD_SIZE)] for j in range(BOARD_SIZE)]
@@ -13,6 +14,7 @@ BATTLESHIP_SIZE = 4  # B
 DESTROYER_SIZE = 3  # D
 SUBMARINE_SIZE = 3  # S
 PATROL_BOAT_SIZE = 2  # P
+SHIP_CHARS = ['A', 'B', 'D', 'S', 'P']
 
 # 1 = up, 2 = down, 3 = left, 4 = right
 SHIP_DIRECTIONS = [1, 2, 3, 4]
@@ -120,7 +122,9 @@ def place_ship(ship_size, ship_marking, direction, row, col):
 def has_game_ended():
     for row in game_board:
         for item in row:
-            if item != DEFAULT_CHAR and item != HIT_CHAR: return False
+            # at the end of the game, no more ships will be left on the board
+            if item in SHIP_CHARS:
+                return False
     return True
 
 
@@ -137,8 +141,8 @@ def is_ship_sunk(ship_hit):
 # returns tuple (hit/miss, null/which ship sunk, game still on/game over)
 def update_gameboard(row, col):
     current = game_board[row][col]
-    if current == DEFAULT_CHAR or current == HIT_CHAR:  # nothing there or they already hit it, miss
-        game_board[row][col] = HIT_CHAR
+    if current not in SHIP_CHARS and current != HIT_CHAR:  # nothing there and it's not somewhere they already hit, so miss
+        game_board[row][col] = MISS_CHAR
         return 0, 0, 0
     else:  # hit
         game_board[row][col] = HIT_CHAR
