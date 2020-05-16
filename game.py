@@ -7,7 +7,7 @@ import naive_ai
 # return: number of turns it took to win
 # ex. model.get_next_move
 def start_game(model_func_next_move):
-    engine.restart_game()
+    game_engine.restart_game()
     game_over = False
     num_turns = 0
     move_response = None
@@ -15,7 +15,7 @@ def start_game(model_func_next_move):
         next_hit = model_func_next_move(move_response)
         # print(move_response)
         # print(next_hit)
-        move_response = engine.update_gameboard(next_hit[0], next_hit[1])
+        move_response = game_engine.update_gameboard(next_hit[0], next_hit[1])
         # engine.print_board_to_console()
         num_turns += 1
         game_over = move_response[2]
@@ -31,6 +31,7 @@ def compute_avg_score(num_simulations, ai_next_move, ai_restart):
     return total_score/num_simulations
 
 
+game_engine = engine.Engine()
 naive_ai = naive_ai.NaiveAI()
 # start_game(naive_ai.next_move)
 # Every AI should have a "next_move" function that takes in move_response as well as a "restart" that resets all the relevant variables
