@@ -13,7 +13,7 @@ MISS_CHAR = 'O'
 # DESTROYER_SIZE = 3  # D
 # SUBMARINE_SIZE = 3  # S
 # PATROL_BOAT_SIZE = 2  # P
-SHIP_CHARS = ('A', 'B', 'D', 'S', 'P')
+SHIP_CHARS = ['A', 'B', 'D', 'S', 'P']
 SHIP_SIZES = {'A': 5, 'B': 4, 'D': 3, 'S': 3, 'P': 2}
 
 # 1 = up, 2 = down, 3 = left, 4 = right
@@ -53,11 +53,10 @@ class Engine:
                     self.game_board[i][j] = DEFAULT_CHAR
         self.set_random_ships(ships_remaining, locs_to_place_ships, unplaceable_locs)
 
-
     # converts ships (excluding shots_fired on ships) to 1 and everything else to 0
     # useful for calculations in monte carlo simulations
     def get_flattened_board(self, shots_fired):
-        flattened_board = [row[:] for row in game_board]  # create a copy of the game board
+        flattened_board = [row[:] for row in self.game_board]  # create a copy of the game board
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
                 # if it's a ship or a place we already fired at, set to 0
@@ -65,6 +64,7 @@ class Engine:
                     flattened_board[i][j] = 0
                 else:
                     flattened_board[i][j] = 1
+        return flattened_board
 
     # prints to console for debugging
     def print_board_to_console(self):

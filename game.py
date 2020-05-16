@@ -1,6 +1,7 @@
 import engine
 import random_ai
 import naive_ai
+import monte_carlo_sim_ai
 
 
 # parameter: higher order function from the AI that is called to get next move.
@@ -33,7 +34,9 @@ def compute_avg_score(num_simulations, ai_next_move, ai_restart):
 
 game_engine = engine.Engine()
 naive_ai = naive_ai.NaiveAI()
+monte_carlo_sim_ai = monte_carlo_sim_ai.MonteCarloSimAi()
 # start_game(naive_ai.next_move)
 # Every AI should have a "next_move" function that takes in move_response as well as a "restart" that resets all the relevant variables
-print("random AI's avg score: " + str(compute_avg_score(100, random_ai.next_move, random_ai.restart)))
+# print("random AI's avg score: " + str(compute_avg_score(100, random_ai.next_move, random_ai.restart)))
 # print("naive AI's avg score: " + str(compute_avg_score(2, naive_ai.next_move, naive_ai.restart)))
+print("Monte Carlo Simulation AI's avg score: " + str(compute_avg_score(1, monte_carlo_sim_ai.next_move, monte_carlo_sim_ai.restart)))
