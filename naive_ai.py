@@ -1,4 +1,6 @@
 import random
+from engine import BOARD_SIZE
+
 class NaiveAI:
     def __init__(self):
         # defaults
@@ -6,7 +8,7 @@ class NaiveAI:
         self.seeking = False
         self.found = False
         self.shooting_direction = 0
-        self.BOARD_SIZE = 10
+        self.BOARD_SIZE = BOARD_SIZE
         self.hit_board = [[' ' for i in range(self.BOARD_SIZE)] for j in range(self.BOARD_SIZE)]
 
         # 1 = up, 2 = down, 3 = left, 4 = right

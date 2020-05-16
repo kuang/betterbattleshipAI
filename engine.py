@@ -9,12 +9,13 @@ MISS_CHAR = 'O'
 
 # inits game board
 game_board = [[DEFAULT_CHAR for i in range(BOARD_SIZE)] for j in range(BOARD_SIZE)]
-AIRCRAFT_CARRIER_SIZE = 5  # A
-BATTLESHIP_SIZE = 4  # B
-DESTROYER_SIZE = 3  # D
-SUBMARINE_SIZE = 3  # S
-PATROL_BOAT_SIZE = 2  # P
+# AIRCRAFT_CARRIER_SIZE = 5  # A
+# BATTLESHIP_SIZE = 4  # B
+# DESTROYER_SIZE = 3  # D
+# SUBMARINE_SIZE = 3  # S
+# PATROL_BOAT_SIZE = 2  # P
 SHIP_CHARS = ['A', 'B', 'D', 'S', 'P']
+SHIP_SIZES = {'A': 5, 'B': 4, 'D': 3, 'S': 3, 'P': 2}
 
 # 1 = up, 2 = down, 3 = left, 4 = right
 SHIP_DIRECTIONS = [1, 2, 3, 4]
@@ -36,11 +37,18 @@ result is
 """
 
 
-def restart_game():
+def restart_game(initial_board=None, ships_remaining=SHIP_CHARS, locs_to_place_ships=None, unplaceable_locs=None):
     for i in range(BOARD_SIZE):
         for j in range(BOARD_SIZE):
-            game_board[i][j] = DEFAULT_CHAR
-    set_random_ships()
+            if initial_board is not None:
+                game_board[i][j] = initial_board[i][j]  # TODO can improve efficiency by just iniitializing init board = game board
+            else:
+                game_board[i][j] = DEFAULT_CHAR
+    set_random_ships(ships_remaining, locs_to_place_ships, unplaceable_locs)
+
+
+def get_game_board():
+    return game_board
 
 
 # prints to console for debugging
@@ -50,17 +58,18 @@ def print_board_to_console():
 
 # set game board to a random positioning of ships
 # ships ARE allowed to touch
-def set_random_ships():
-    place_rand_ship(AIRCRAFT_CARRIER_SIZE, 'A')
-    place_rand_ship(BATTLESHIP_SIZE, 'B')
-    place_rand_ship(DESTROYER_SIZE, 'D')
-    place_rand_ship(SUBMARINE_SIZE, 'S')
-    place_rand_ship(PATROL_BOAT_SIZE, 'P')
+def set_random_ships(ships_remaining, locs_to_place_ships, unplaceable_locs):
+    for ship in ships_remaining:
+        if ship not in SHIP_CHARS:
+            print('Error, ship ' + ship + ' does not exist')
+            continue
+        locs_to_place_ships = place_rand_ship(SHIP_SIZES[ship], ship, locs_to_place_ships, unplaceable_locs)
 
 
 # place a ship of size ship_size, with marking ship_marking
 # idea: pick random x y. check if ship can be placed there. if yes, place, otherwise, pick new x y
-def place_rand_ship(ship_size, ship_marking):
+# returns locs_to_place_ships that are left after placing a ship
+def place_rand_ship(ship_size, ship_marking, locs_to_place_ships, unplaceable_locs):
     ship_placed_validly = False
     while not ship_placed_validly:
         row = random.randint(0, BOARD_SIZE-1)
@@ -73,10 +82,16 @@ def place_rand_ship(ship_size, ship_marking):
                     place_ship(ship_size, ship_marking, direction, row, col)
                     ship_placed_validly = True
                     break
+    # if a ship was placed at a location that it should be, then remove the loc
+    return [loc for loc in locs_to_place_ships if game_board[loc[0]][loc[1]] not in SHIP_CHARS]
 
 
 # checks if a ship of size ship_size can be placed in direction direction at row col
-def check_valid_ship_placement(ship_size, direction, row, col):
+# allow_place_on_hit means that a ship can be placed on a hit spot, useful for monte carlo placements
+def check_valid_ship_placement(ship_size, direction, row, col, allow_place_on_hit):
+    PLACEABLE_CHARS = [DEFAULT_CHAR]
+    if allow_place_on_hit:
+        PLACEABLE_CHARS.append(HIT_CHAR)
     if direction == 1:  # up
         if row - ship_size + 1 < 0:
             return False
