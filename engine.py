@@ -38,6 +38,8 @@ result is
 
 
 def restart_game(initial_board=None, ships_remaining=SHIP_CHARS, locs_to_place_ships=None, unplaceable_locs=None):
+    if locs_to_place_ships is None:
+        locs_to_place_ships = []
     for i in range(BOARD_SIZE):
         for j in range(BOARD_SIZE):
             if initial_board is not None:
@@ -47,8 +49,17 @@ def restart_game(initial_board=None, ships_remaining=SHIP_CHARS, locs_to_place_s
     set_random_ships(ships_remaining, locs_to_place_ships, unplaceable_locs)
 
 
-def get_game_board():
-    return game_board
+# converts ships (excluding shots_fired on ships) to 1 and everything else to 0
+# useful for calculations in monte carlo simulations
+def get_flattened_board(shots_fired):
+    flattened_board = [row[:] for row in game_board]  # create a copy of the game board
+    for i in range(BOARD_SIZE):
+        for j in range(BOARD_SIZE):
+            # if it's a ship or a place we already fired at, set to 0
+            if flattened_board[i][j] not in SHIP_CHARS or [i, j] in shots_fired:
+                flattened_board[i][j] = 0
+            else:
+                flattened_board[i][j] = 1
 
 
 # prints to console for debugging
@@ -71,24 +82,37 @@ def set_random_ships(ships_remaining, locs_to_place_ships, unplaceable_locs):
 # returns locs_to_place_ships that are left after placing a ship
 def place_rand_ship(ship_size, ship_marking, locs_to_place_ships, unplaceable_locs):
     ship_placed_validly = False
+    locs_count = 0
     while not ship_placed_validly:
         row = random.randint(0, BOARD_SIZE-1)
         col = random.randint(0, BOARD_SIZE-1)
+        placeable_chars = [DEFAULT_CHAR]
+        allow_place_on_hit = False
+        # if we still have to place these ships on hits, then allow them to be placed there
+        if len(locs_to_place_ships) > 0:
+            allow_place_on_hit = True
+        # first go through the locs to place ships, then we can go back to random
+        if locs_count < len(locs_to_place_ships):
+            row = locs_to_place_ships[locs_count][0]
+            col = locs_to_place_ships[locs_count][1]
+            allow_place_on_hit = True
+            placeable_chars = [DEFAULT_CHAR, HIT_CHAR]
         # no ship at this coord yet
-        if game_board[row][col] == DEFAULT_CHAR:
+        if game_board[row][col] in placeable_chars:
             random.shuffle(SHIP_DIRECTIONS)  # choose random direction
             for direction in SHIP_DIRECTIONS:
-                if check_valid_ship_placement(ship_size, direction, row, col):
+                if check_valid_ship_placement(ship_size, direction, row, col, allow_place_on_hit, unplaceable_locs):
                     place_ship(ship_size, ship_marking, direction, row, col)
                     ship_placed_validly = True
                     break
+        locs_count += 1
     # if a ship was placed at a location that it should be, then remove the loc
     return [loc for loc in locs_to_place_ships if game_board[loc[0]][loc[1]] not in SHIP_CHARS]
 
 
 # checks if a ship of size ship_size can be placed in direction direction at row col
 # allow_place_on_hit means that a ship can be placed on a hit spot, useful for monte carlo placements
-def check_valid_ship_placement(ship_size, direction, row, col, allow_place_on_hit):
+def check_valid_ship_placement(ship_size, direction, row, col, allow_place_on_hit, unplaceable_locs):
     PLACEABLE_CHARS = [DEFAULT_CHAR]
     if allow_place_on_hit:
         PLACEABLE_CHARS.append(HIT_CHAR)
@@ -96,25 +120,28 @@ def check_valid_ship_placement(ship_size, direction, row, col, allow_place_on_hi
         if row - ship_size + 1 < 0:
             return False
         for i in range(ship_size):
-            if game_board[row-i][col] != DEFAULT_CHAR:
+            if game_board[row-i][col] not in PLACEABLE_CHARS or [row-i, col] in unplaceable_locs:
                 return False
+            # TODO if another ship is adjacent, don't allow.
+            # if game_board[row][col] == HIT_CHAR:
+            #     return False
     elif direction == 2:  # down
         if row + ship_size > BOARD_SIZE:
             return False
         for i in range(ship_size):
-            if game_board[row+i][col] != DEFAULT_CHAR:
+            if game_board[row+i][col] not in PLACEABLE_CHARS or [row+i, col] in unplaceable_locs:
                 return False
     elif direction == 3:  # left
         if col - ship_size + 1 < 0:
             return False
         for i in range(ship_size):
-            if game_board[row][col-i] != DEFAULT_CHAR:
+            if game_board[row][col-i] not in PLACEABLE_CHARS or [row, col - i] in unplaceable_locs:
                 return False
     else:  # direction = 4, right
         if col + ship_size > BOARD_SIZE:
             return False
         for i in range(ship_size):
-            if game_board[row][col+i] != DEFAULT_CHAR:
+            if game_board[row][col+i] not in PLACEABLE_CHARS or [row, col + i] in unplaceable_locs:
                 return False
     return True
 
