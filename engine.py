@@ -38,7 +38,8 @@ result is
 
 class Engine:
     def __init__(self):
-        self.game_board = [[DEFAULT_CHAR for i in range(BOARD_SIZE)] for j in range(BOARD_SIZE)]
+        self.game_board = [[DEFAULT_CHAR for i in range(
+            BOARD_SIZE)] for j in range(BOARD_SIZE)]
 
     def restart_game(self, initial_board=None, ships_remaining=SHIP_CHARS, locs_to_place_ships=None, unplaceable_locs=None):
         if locs_to_place_ships is None:
@@ -51,12 +52,14 @@ class Engine:
             for i in range(BOARD_SIZE):
                 for j in range(BOARD_SIZE):
                     self.game_board[i][j] = DEFAULT_CHAR
-        self.set_random_ships(ships_remaining, locs_to_place_ships, unplaceable_locs)
+        self.set_random_ships(
+            ships_remaining, locs_to_place_ships, unplaceable_locs)
 
     # converts ships (excluding shots_fired on ships) to 1 and everything else to 0
     # useful for calculations in monte carlo simulations
     def get_flattened_board(self, shots_fired):
-        flattened_board = [row[:] for row in self.game_board]  # create a copy of the game board
+        # create a copy of the game board
+        flattened_board = [row[:] for row in self.game_board]
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
                 # if it's a ship or a place we already fired at, set to 0
@@ -77,7 +80,8 @@ class Engine:
             if ship not in SHIP_CHARS:
                 print('Error, ship ' + ship + ' does not exist')
                 continue
-            locs_to_place_ships = self.place_rand_ship(SHIP_SIZES[ship], ship, locs_to_place_ships, unplaceable_locs)
+            locs_to_place_ships = self.place_rand_ship(
+                SHIP_SIZES[ship], ship, locs_to_place_ships, unplaceable_locs)
 
     # place a ship of size ship_size, with marking ship_marking
     # idea: pick random x y. check if ship can be placed there. if yes, place, otherwise, pick new x y
@@ -104,16 +108,17 @@ class Engine:
                 random.shuffle(SHIP_DIRECTIONS)  # choose random direction
                 for direction in SHIP_DIRECTIONS:
                     if self.check_valid_ship_placement(ship_size, direction, row, col, allow_place_on_hit, unplaceable_locs):
-                        self.place_ship(ship_size, ship_marking, direction, row, col)
+                        self.place_ship(ship_size, ship_marking,
+                                        direction, row, col)
                         ship_placed_validly = True
                         break
             locs_count += 1
         # if a ship was placed at a location that it should be, then remove the loc
         return [loc for loc in locs_to_place_ships if self.game_board[loc[0]][loc[1]] not in SHIP_CHARS]
 
-
     # checks if a ship of size ship_size can be placed in direction direction at row col
     # allow_place_on_hit means that a ship can be placed on a hit spot, useful for monte carlo placements
+
     def check_valid_ship_placement(self, ship_size, direction, row, col, allow_place_on_hit, unplaceable_locs):
         PLACEABLE_CHARS = [DEFAULT_CHAR]
         if allow_place_on_hit:
@@ -122,30 +127,45 @@ class Engine:
             if row - ship_size + 1 < 0:
                 return False
             for i in range(ship_size):
-                if self.game_board[row-i][col] not in PLACEABLE_CHARS or [row-i, col] in unplaceable_locs:
+                if self.game_board[row-i][col] not in PLACEABLE_CHARS or [row-i, col] in unplaceable_locs or self.is_loc_adjacent_to_ship(row-i, col):
                     return False
-                # TODO if another ship is adjacent, don't allow.
                 # if game_board[row][col] == HIT_CHAR:
                 #     return False
         elif direction == 2:  # down
             if row + ship_size > BOARD_SIZE:
                 return False
             for i in range(ship_size):
-                if self.game_board[row+i][col] not in PLACEABLE_CHARS or [row+i, col] in unplaceable_locs:
+                if self.game_board[row+i][col] not in PLACEABLE_CHARS or [row+i, col] in unplaceable_locs or self.is_loc_adjacent_to_ship(row+i, col):
                     return False
         elif direction == 3:  # left
             if col - ship_size + 1 < 0:
                 return False
             for i in range(ship_size):
-                if self.game_board[row][col-i] not in PLACEABLE_CHARS or [row, col - i] in unplaceable_locs:
+                if self.game_board[row][col-i] not in PLACEABLE_CHARS or [row, col - i] in unplaceable_locs or self.is_loc_adjacent_to_ship(row, col-i):
                     return False
         else:  # direction = 4, right
             if col + ship_size > BOARD_SIZE:
                 return False
             for i in range(ship_size):
-                if self.game_board[row][col+i] not in PLACEABLE_CHARS or [row, col + i] in unplaceable_locs:
+                if self.game_board[row][col+i] not in PLACEABLE_CHARS or [row, col + i] in unplaceable_locs or self.is_loc_adjacent_to_ship(row, col-i):
                     return False
         return True
+
+    # returns true if loc is next to a ship, false otherwise
+    def is_loc_adjacent_to_ship(self, row, col):
+        # up
+        if row-1 >= 0 and self.game_board[row-1][col] != DEFAULT_CHAR:
+            return True
+        # down
+        if row+1 < BOARD_SIZE and self.game_board[row+1][col] != DEFAULT_CHAR:
+            return True
+        # left
+        if col-1 >= 0 and self.game_board[row][col-1] != DEFAULT_CHAR:
+            return True
+        # right
+        if col+1 < BOARD_SIZE and self.game_board[row][col+1] != DEFAULT_CHAR:
+            return True
+        return False
 
     def place_ship(self, ship_size, ship_marking, direction, row, col):
         if direction == 1:  # up
@@ -181,7 +201,8 @@ class Engine:
     # returns tuple (hit/miss, null/which ship sunk, game still on/game over)
     def update_gameboard(self, row, col):
         current = self.game_board[row][col]
-        if current not in SHIP_CHARS and current != HIT_CHAR:  # nothing there and it's not somewhere they already hit, so miss
+        # nothing there and it's not somewhere they already hit, so miss
+        if current not in SHIP_CHARS and current != HIT_CHAR:
             self.game_board[row][col] = MISS_CHAR
             return 0, 0, 0
         else:  # hit
@@ -191,7 +212,6 @@ class Engine:
                 game_ended = int(self.has_game_ended())
                 return 1, current, game_ended
             return 1, 0, 0
-
 
     # set_random_ships()
     # game_board[0][0] = 'P'
