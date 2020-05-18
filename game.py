@@ -22,7 +22,7 @@ def start_game(model_func_next_move):
         # game_engine.print_board_to_console()
         num_turns += 1
         game_over = move_response[2]
-    print('NUMBER OF MOVES: ' + str(num_turns))
+    # print('NUMBER OF MOVES: ' + str(num_turns))
     return num_turns
 
 
