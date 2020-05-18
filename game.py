@@ -17,10 +17,10 @@ def start_game(model_func_next_move):
         # print(move_response)
         # print(next_hit)
         move_response = game_engine.update_gameboard(next_hit[0], next_hit[1])
-        game_engine.print_board_to_console()
+        # game_engine.print_board_to_console()
         num_turns += 1
         game_over = move_response[2]
-    print('NUMBER OF MOVES: ' + str(num_turns))
+    # print('NUMBER OF MOVES: ' + str(num_turns))
     return num_turns
 
 
@@ -38,5 +38,5 @@ monte_carlo_sim_ai = monte_carlo_sim_ai.MonteCarloSimAi()
 # start_game(naive_ai.next_move)
 # Every AI should have a "next_move" function that takes in move_response as well as a "restart" that resets all the relevant variables
 # print("random AI's avg score: " + str(compute_avg_score(1, random_ai.next_move, random_ai.restart)))
-# print("naive AI's avg score: " + str(compute_avg_score(100, naive_ai.next_move, naive_ai.restart)))
-print("Monte Carlo Simulation AI's avg score: " + str(compute_avg_score(1, monte_carlo_sim_ai.next_move, monte_carlo_sim_ai.restart)))
+print("naive AI's avg score: " + str(compute_avg_score(10000, naive_ai.next_move, naive_ai.restart)))
+# print("Monte Carlo Simulation AI's avg score: " + str(compute_avg_score(1, monte_carlo_sim_ai.next_move, monte_carlo_sim_ai.restart)))
