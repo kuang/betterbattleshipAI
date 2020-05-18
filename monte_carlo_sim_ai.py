@@ -1,6 +1,7 @@
 import random
 import engine
 import numpy as np
+import itertools
 
 
 class MonteCarloSimAi:
@@ -76,8 +77,13 @@ class MonteCarloSimAi:
                 if ship_sunk:
                     self.ships_remaining.remove(ship_sunk)
                     # get the coordinates of the sunken ship, add to locs_sunk
+                    print("just sunk ship " + ship_sunk + " with fire " + str(most_recent_fire))
                     locs_of_sunk_ship = self.get_locs_of_sunk_ship(most_recent_fire, ship_sunk)
+                    print("locs of just sunk ship:", locs_of_sunk_ship)
                     self.locs_sunk.extend(locs_of_sunk_ship)
+                    self.locs_sunk.sort()
+                    self.locs_sunk = list(self.locs_sunk for self.locs_sunk, _ in itertools.groupby(self.locs_sunk))
+                    print("locs after de-duping", self.locs_sunk)
                     # remove the coords in hit not sunk that are in the sunk list now that we've actually sunk
                     new_locs_hit_not_sunk = []
                     for hit_loc in self.locs_hit_not_sunk:
@@ -89,6 +95,7 @@ class MonteCarloSimAi:
                         if should_add_loc:
                             new_locs_hit_not_sunk.append(hit_loc)
                     self.locs_hit_not_sunk = new_locs_hit_not_sunk
+                    print("new locs hit not sunk:", self.locs_hit_not_sunk)
                 else:
                     self.locs_hit_not_sunk.append(most_recent_fire)
             else:
@@ -115,7 +122,9 @@ class MonteCarloSimAi:
             print("0 and 0 prob")
             print(frequencies)
             print("ships remaining: ", self.ships_remaining)
+            print("locs hit not sunk", self.locs_hit_not_sunk)
             print("locs sunk ", self.locs_sunk)
+            print("shots fired", self.shots_fired)
         self.shots_fired.append([max_x, max_y])  # if there are ties, just get the first one
         return self.shots_fired[-1]
 

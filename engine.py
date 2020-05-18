@@ -147,7 +147,7 @@ class Engine:
             if col + ship_size > BOARD_SIZE:
                 return False
             for i in range(ship_size):
-                if self.game_board[row][col+i] not in PLACEABLE_CHARS or [row, col + i] in unplaceable_locs or self.is_loc_adjacent_to_ship(row, col-i):
+                if self.game_board[row][col+i] not in PLACEABLE_CHARS or [row, col + i] in unplaceable_locs or self.is_loc_adjacent_to_ship(row, col+i):
                     return False
         return True
 
