@@ -24,8 +24,8 @@ class NaiveAI:
     def is_valid_shot(self, coord):
         x = coord[0]
         y = coord[1]
-        if x<0 or x>9: return False
-        if y<0 or y>9: return False
+        if x<0 or x>BOARD_SIZE-1: return False
+        if y<0 or y>BOARD_SIZE-1: return False
         if self.hit_board[x][y] == "x":
             return False
         return True
