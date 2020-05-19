@@ -9,12 +9,13 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 
 class MonteCarloSimAi:
-    def __init__(self):
+    def __init__(self, num_mc_simulations=50):
         self.BOARD_SIZE = engine.BOARD_SIZE
-        self.NUM_MC_SIMULATIONS = 50
+        self.NUM_MC_SIMULATIONS = num_mc_simulations
 
         self.current_board = [[' ' for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
         self.ships_remaining = engine.SHIP_CHARS[:]  # copy values, not by reference
+        self.frequencies = [[0 for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
 
         self.locs_hit_not_sunk = []  # have to make sure ships are placed where we hit but haven't sunk
         self.locs_sunk = []  # locs where we sunk and hence where new ships shouldn't be
@@ -28,9 +29,37 @@ class MonteCarloSimAi:
             for arg in args:
                 print(arg)
 
+    @staticmethod
+    def copy_2d_list(list_to_copy):
+        return [row[:] for row in list_to_copy]
+
     # used for testing
     def set_board(self, board):
         self.current_board = board
+
+    def get_probability_table(self):
+        new_tbl = [[0.000 for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
+        for i in range(self.BOARD_SIZE):
+            for j in range(self.BOARD_SIZE):
+                prob_value = self.frequencies[i][j]/self.NUM_MC_SIMULATIONS
+                print("value in prob table", self.frequencies[i][j], "num mc sims", self.NUM_MC_SIMULATIONS, "Prob value", prob_value, "Prob")
+                new_tbl[i][j] = float(prob_value)
+                print("value in new table after", new_tbl[i][j])
+        return new_tbl
+
+    # returns the coords of the top n values in the 2d table
+    def get_top_n_from_2d_table(self, two_dim_table, num_top_vals):
+        coords_of_max = []
+        table_copy = self.copy_2d_list(two_dim_table)
+        if num_top_vals > self.BOARD_SIZE * self.BOARD_SIZE:
+            num_top_vals = self.BOARD_SIZE * self.BOARD_SIZE
+        while len(coords_of_max) < num_top_vals:
+            max_coords = np.where(table_copy == np.amax(table_copy))  # get the coords of the highest values in the matrix
+            max_x = max_coords[0][0]  # max_coords[0] is the list of all the x coordinates in the max pairs, max_coords[1] is same but for y
+            max_y = max_coords[1][0]
+            coords_of_max.append([max_x, max_y])
+            table_copy[max_x][max_y] = -1  # maek sure it doesn't get chosen again
+        return coords_of_max
 
     def get_locs_of_sunk_ship(self, loc_that_sunk, ship_type):
         ship_size = engine.SHIP_SIZES[ship_type]
@@ -120,7 +149,7 @@ class MonteCarloSimAi:
         self.log("response after firing at that loc: ", response)
         # self.log(np.matrix(self.current_board))
         # do the Monte Carlo Simulation to get the frequencies
-        frequencies = [[0 for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
+        self.frequencies = [[0 for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
         i = 0
         while i < self.NUM_MC_SIMULATIONS:
             current_board_copy = [row[:] for row in self.current_board]
@@ -139,17 +168,16 @@ class MonteCarloSimAi:
             if self.game_engine.restart_game(current_board_copy, self.ships_remaining, self.locs_hit_not_sunk, self.locs_sunk) == -1:
                 continue
             self.log("about to add the frequencies")
-            frequencies = np.add(frequencies, self.game_engine.get_flattened_board(self.shots_fired))
+            self.frequencies = np.add(self.frequencies, self.game_engine.get_flattened_board(self.shots_fired))
             i += 1
         self.log("finished for loop")
-        # self.log(frequencies)
-        max_coords = np.where(frequencies == np.amax(frequencies))  # get the coords of the highest values in the matrix
+        max_coords = np.where(self.frequencies == np.amax(self.frequencies))  # get the coords of the highest values in the matrix
         max_x = max_coords[0][0]  # max_coords[0] is the list of all the x coordinates in the max pairs, max_coords[1] is same but for y
         max_y = max_coords[1][0]
         self.log("Firing at ", [max_x, max_y])
         if max_x == 0 and max_y == 0:
             self.log("0 and 0 prob")
-            self.log(frequencies)
+            self.log(self.frequencies)
             self.log("ships remaining: ", self.ships_remaining)
             self.log("locs hit not sunk", self.locs_hit_not_sunk)
             self.log("locs sunk ", self.locs_sunk)

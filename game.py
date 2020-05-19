@@ -34,9 +34,29 @@ def compute_avg_score(num_simulations, ai_next_move, ai_restart):
     return total_score/num_simulations
 
 
+# runs monte carlo sim ai num_moves time and returns the probability table at that instance
+def get_mc_prob_table(num_mc_sims, num_moves):
+    mc_sim_ai = mcsim.MonteCarloSimAi(num_mc_sims)
+    game_engine.restart_game()
+    game_over = False
+    num_turns = 0
+    move_response = None
+    while num_turns < num_moves and not game_over:
+        next_hit = mc_sim_ai.next_move(move_response)
+        move_response = game_engine.update_gameboard(next_hit[0], next_hit[1])
+        num_turns += 1
+        game_over = move_response[2]
+    return mc_sim_ai.get_probability_table()
+
+
 game_engine = engine.Engine()
 naive_ai = naive_ai.NaiveAI()
-monte_carlo_sim_ai = mcsim.MonteCarloSimAi()
+monte_carlo_sim_ai = mcsim.MonteCarloSimAi(1)
+# prob_table = get_mc_prob_table(49, 8)
+# print(prob_table)
+# print(monte_carlo_sim_ai.get_top_n_from_2d_table(prob_table, 5))
+
 # print("random AI's avg score: " + str(compute_avg_score(1, random_ai.next_move, random_ai.restart))) #avg=92? forgot
-# print("naive AI's avg score: " + str(compute_avg_score(1, naive_ai.next_move, naive_ai.restart)))  #avg=78.72
-print("Monte Carlo Simulation AI's avg score: " + str(compute_avg_score(100, monte_carlo_sim_ai.next_move, monte_carlo_sim_ai.restart)))
+# print("naive AI's avg score: " + str(compute_avg_score(100, naive_ai.next_move, naive_ai.restart)))  #avg=78.72
+# print("Monte Carlo Simulation AI's avg score: " + str(compute_avg_score(100, monte_carlo_sim_ai.next_move, monte_carlo_sim_ai.restart)))
+# 50.58 with 100 simulations and num mc sim = 10, mc sim = 50 goes to 48.08
