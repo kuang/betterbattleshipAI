@@ -1,7 +1,8 @@
 import random
 from engine import BOARD_SIZE
 
-class NaiveAI:
+
+class DetAI:
     def __init__(self):
         # defaults
         self.last_shot = (0,0)
