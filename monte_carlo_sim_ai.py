@@ -37,14 +37,20 @@ class MonteCarloSimAi:
     def set_board(self, board):
         self.current_board = board
 
+    def get_all_valid_moves(self):
+        valid_moves = []
+        for i in range(self.BOARD_SIZE):
+            for j in range(self.BOARD_SIZE):
+                if self.current_board[i][j] == engine.DEFAULT_CHAR:
+                    valid_moves.append([i, j])
+        return valid_moves
+
     def get_probability_table(self):
         new_tbl = [[0.000 for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
         for i in range(self.BOARD_SIZE):
             for j in range(self.BOARD_SIZE):
                 prob_value = self.frequencies[i][j]/self.NUM_MC_SIMULATIONS
-                print("value in prob table", self.frequencies[i][j], "num mc sims", self.NUM_MC_SIMULATIONS, "Prob value", prob_value, "Prob")
                 new_tbl[i][j] = float(prob_value)
-                print("value in new table after", new_tbl[i][j])
         return new_tbl
 
     # returns the coords of the top n values in the 2d table
@@ -149,15 +155,16 @@ class MonteCarloSimAi:
         self.log("response after firing at that loc: ", response)
         # self.log(np.matrix(self.current_board))
         # do the Monte Carlo Simulation to get the frequencies
-        self.frequencies = [[0 for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
+        self.frequencies = [[0.000 for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
         i = 0
         while i < self.NUM_MC_SIMULATIONS:
             current_board_copy = [row[:] for row in self.current_board]
-            # self.log("in mc simulation number ", i)
-            # self.log("about to restart game in for loop")
-            # self.log("Ships remaining: ", self.ships_remaining)
-            # self.log("Locs hit not sunk: ", self.locs_hit_not_sunk)
-            # self.log("Locs sunk: ", self.locs_sunk)
+            self.log("in mc simulation number ", i)
+            self.log("about to restart game in for loop")
+            self.log("Ships remaining: ", self.ships_remaining)
+            self.log("Locs hit not sunk: ", self.locs_hit_not_sunk)
+            self.log("Locs sunk: ", self.locs_sunk)
+            self.log("Shots fired: ", self.shots_fired)
             # for row in range(engine.BOARD_SIZE):
             #     for col in range(engine.BOARD_SIZE):
             #         if current_board_copy[row][col] != engine.DEFAULT_CHAR:
@@ -167,7 +174,6 @@ class MonteCarloSimAi:
             # if we couldn't find a valid ship placement, shuffle and try again
             if self.game_engine.restart_game(current_board_copy, self.ships_remaining, self.locs_hit_not_sunk, self.locs_sunk) == -1:
                 continue
-            self.log("about to add the frequencies")
             self.frequencies = np.add(self.frequencies, self.game_engine.get_flattened_board(self.shots_fired))
             i += 1
         self.log("finished for loop")
@@ -194,4 +200,3 @@ class MonteCarloSimAi:
         self.shots_fired = []  # list of locs that we fired at, regardless of their outcome
 
         self.game_engine = engine.Engine()
-
